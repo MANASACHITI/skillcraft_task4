@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>To-Do Web App</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg1: #f0f6ff;
+      --card: #ffffff;
+      --accent: #4CAF50;
+      --muted: #6b7280;
+      --danger: #e53935;
+      --yellow: #f59e0b;
+    }
+    *{box-sizing: border-box}
+    body{
+      font-family: "Poppins", sans-serif;
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: linear-gradient(135deg,#eef7ff 0%, #f6fbf5 100%);
+      padding:24px;
+    }
+    .todo-container{
+      width:100%;
+      max-width:760px;
+      background:var(--card);
+      border-radius:14px;
+      box-shadow: 0 10px 30px rgba(12, 25, 60, 0.08);
+      padding:20px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+    header h1{ margin:0; font-size:20px; display:flex; gap:8px; align-items:center;}
+    .controls{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .controls input[type="text"], .controls input[type="datetime-local"], .controls select{
+      padding:10px;
+      border-radius:10px;
+      border:1px solid #e6e9ef;
+      font-size:14px;
+    }
+    .controls .add-btn{
+      padding:10px 14px;
+      border-radius:10px;
+      background:var(--accent);
+      color:#fff;
+      border:none;
+      cursor:pointer;
+      font-weight:600;
+    }
+    .toolbar{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+      margin-top:6px;
+    }
+    .toolbar input, .toolbar select{ padding:8px; border-radius:8px; border:1px solid #e6e9ef; }
+    #taskList{ list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px; }
+    .task{
+      padding:12px;
+      border-radius:10px;
+      background:#fbfdff;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      border: 1px solid #f0f3f8;
+      transition: transform .12s ease, box-shadow .12s ease;
+    }
+    .task:hover{ transform: translateY(-3px); box-shadow:0 6px 18px rgba(12,25,60,0.06); }
+    .task-left{ display:flex; gap:12px; align-items:center; min-width:0; }
+    .badge{
+      padding:6px 10px;
+      border-radius:999px;
+      font-weight:600;
+      font-size:12px;
+      color:#fff;
+      display:inline-block;
+      min-width:70px;
+      text-align:center;
+    }
+    .badge.work{ background:#2563eb }
+    .badge.personal{ background:#10b981 }
+    .badge.shopping{ background:#f97316 }
+    .badge.study{ background:#7c3aed }
+    .task-title{ font-weight:600; color:#111827; margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:260px; }
+    .task-meta{ font-size:12px; color:var(--muted); display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .task-actions{ display:flex; gap:6px; align-items:center; }
+    .task-actions button{ border:none; padding:8px; border-radius:8px; cursor:pointer; font-weight:600; }
+    .task-actions button.complete{ background:#4CAF50; color:#fff }
+    .task-actions button.edit{ background:#ffb300; color:#fff }
+    .task-actions button.delete{ background:#ef4444; color:#fff }
+    .completed .task-title{ text-decoration:line-through; color:#9ca3af; }
+    .overdue{ border:1px solid rgba(229,57,53,0.25); box-shadow:0 6px 18px rgba(229,57,53,0.06); }
+    footer{ display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; color:var(--muted); font-size:13px; }
+    .small{ font-size:12px; color:var(--muted) }
+    .flex-row{ display:flex; gap:8px; align-items:center; }
+    .pill{ padding:6px 10px; border-radius:999px; background:#f3f4f6; border:1px solid #eee; font-size:13px; }
+    /* responsive */
+    @media (max-width:640px){
+      .controls{ flex-direction:column; }
+      .task-left{ flex-direction:column; align-items:flex-start; gap:6px; }
+      .task-title{ max-width:140px }
+    }
+  </style>
+</head>
+<body>
+  <div class="todo-container">
+    <header>
+      <h1>✅ To-Do Web App</h1>
+      <div class="small">Developed for SkillCraft • Task 04</div>
+    </header>
+
+    <!-- Add row -->
+    <div class="controls">
+      <input id="taskInput" type="text" placeholder="Enter task (eg. Finish assignment)" />
+      <select id="categorySelect">
+        <option value="work">Work</option>
+        <option value="personal">Personal</option>
+        <option value="shopping">Shopping</option>
+        <option value="study">Study</option>
+      </select>
+      <input id="taskDateTime" type="datetime-local" />
+      <button id="addBtn" class="add-btn">➕ Add Task</button>
+    </div>
+
+    <!-- Filters -->
+    <div class="toolbar">
+      <input id="searchInput" type="text" placeholder="Search tasks..." />
+      <select id="statusFilter">
+        <option value="all">All</option>
+        <option value="active">Active</option>
+        <option value="completed">Completed</option>
+      </select>
+      <select id="categoryFilter">
+        <option value="all">All categories</option>
+        <option value="work">Work</option>
+        <option value="personal">Personal</option>
+        <option value="shopping">Shopping</option>
+        <option value="study">Study</option>
+      </select>
+      <select id="sortSelect">
+        <option value="created_desc">Newest</option>
+        <option value="due_asc">Due (earliest)</option>
+        <option value="due_desc">Due (latest)</option>
+      </select>
+      <div style="margin-left:auto" class="flex-row">
+        <button id="exportBtn" class="pill">Export JSON</button>
+        <label class="pill" style="cursor:pointer">
+          Import <input id="importFile" type="file" accept=".json" style="display:none" />
+        </label>
+        <button id="clearCompleted" class="pill">Clear completed</button>
+      </div>
+    </div>
+
+    <ul id="taskList"></ul>
+
+    <footer>
+      <div id="stats">0 tasks</div>
+      <div class="small">Tip: press Enter in task field to add • Click ✔ to toggle complete</div>
+    </footer>
+  </div>
+
+  <script>
+    // Simple unique ID
+    const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+
+    // DOM
+    const taskInput = document.getElementById('taskInput');
+    const taskDateTime = document.getElementById('taskDateTime');
+    const categorySelect = document.getElementById('categorySelect');
+    const addBtn = document.getElementById('addBtn');
+    const taskList = document.getElementById('taskList');
+    const searchInput = document.getElementById('searchInput');
+    const statusFilter = document.getElementById('statusFilter');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const sortSelect = document.getElementById('sortSelect');
+    const stats = document.getElementById('stats');
+    const exportBtn = document.getElementById('exportBtn');
+    const importFile = document.getElementById('importFile');
+    const clearCompleted = document.getElementById('clearCompleted');
+
+    let tasks = loadTasks();
+
+    // --- Core ---
+    function addTask(){
+      const text = taskInput.value.trim();
+      const due = taskDateTime.value || null;
+      const category = categorySelect.value;
+
+      if(!text) { alert('Enter a task'); return; }
+
+      const task = {
+        id: uid(),
+        text,
+        due,
+        category,
+        completed: false,
+        createdAt: new Date().toISOString()
+      };
+
+      tasks.push(task);
+      saveTasks();
+      render();
+      taskInput.value = '';
+      taskDateTime.value = '';
+      taskInput.focus();
+    }
+
+    function saveTasks(){
+      localStorage.setItem('todo_tasks', JSON.stringify(tasks));
+    }
+    function loadTasks(){
+      try {
+        return JSON.parse(localStorage.getItem('todo_tasks')) || [];
+      } catch(e){
+        return [];
+      }
+    }
+
+    function formatDate(iso){
+      if(!iso) return '';
+      const d = new Date(iso);
+      if(isNaN(d)) return iso;
+      return d.toLocaleString();
+    }
+
+    function isOverdue(task){
+      return task.due && !task.completed && (new Date(task.due) < new Date());
+    }
+
+    function render(){
+      // Apply filters
+      let filtered = tasks.slice();
+
+      const q = searchInput.value.trim().toLowerCase();
+      if(q) filtered = filtered.filter(t => t.text.toLowerCase().includes(q));
+
+      const status = statusFilter.value;
+      if(status === 'active') filtered = filtered.filter(t => !t.completed);
+      if(status === 'completed') filtered = filtered.filter(t => t.completed);
+
+      const cat = categoryFilter.value;
+      if(cat !== 'all') filtered = filtered.filter(t => t.category === cat);
+
+      // Sort
+      const sort = sortSelect.value;
+      if(sort === 'due_asc'){
+        filtered.sort((a,b) => (a.due||'9999') > (b.due||'9999') ? 1 : -1);
+      } else if(sort === 'due_desc'){
+        filtered.sort((a,b) => (a.due||'0') < (b.due||'0') ? 1 : -1);
+      } else { // created_desc
+        filtered.sort((a,b) => (a.createdAt < b.createdAt) ? 1 : -1);
+      }
+
+      // Render
+      taskList.innerHTML = '';
+      filtered.forEach(task => {
+        const li = document.createElement('li');
+        li.className = 'task';
+        if(task.completed) li.classList.add('completed');
+        if(isOverdue(task)) li.classList.add('overdue');
+
+        const left = document.createElement('div'); left.className = 'task-left';
+        const badge = document.createElement('div'); badge.className = 'badge ' + task.category;
+        badge.textContent = task.category.toUpperCase();
+
+        const center = document.createElement('div');
+        const title = document.createElement('div'); title.className = 'task-title'; title.textContent = task.text;
+        const meta = document.createElement('div'); meta.className = 'task-meta';
+        if(task.due) {
+          const dueEl = document.createElement('span');
+          dueEl.textContent = '⏰ ' + formatDate(task.due);
+          meta.appendChild(dueEl);
+        }
+        const createdEl = document.createElement('span'); createdEl.textContent = '🕒 ' + new Date(task.createdAt).toLocaleString();
+        meta.appendChild(createdEl);
+
+        center.appendChild(title); center.appendChild(meta);
+
+        left.appendChild(badge); left.appendChild(center);
+
+        const actions = document.createElement('div'); actions.className = 'task-actions';
+        const completeBtn = document.createElement('button'); completeBtn.className = 'complete'; completeBtn.textContent = '✔';
+        completeBtn.onclick = () => { toggleComplete(task.id); };
+        const editBtn = document.createElement('button'); editBtn.className = 'edit'; editBtn.textContent = '✏';
+        editBtn.onclick = () => { editTask(task.id); };
+        const deleteBtn = document.createElement('button'); deleteBtn.className = 'delete'; deleteBtn.textContent = '🗑';
+        deleteBtn.onclick = () => { deleteTask(task.id); };
+
+        actions.appendChild(completeBtn); actions.appendChild(editBtn); actions.appendChild(deleteBtn);
+
+        li.appendChild(left); li.appendChild(actions);
+
+        taskList.appendChild(li);
+      });
+
+      stats.textContent = `${tasks.length} total • ${tasks.filter(t=>!t.completed).length} active • ${tasks.filter(t=>t.completed).length} done`;
+    }
+
+    function toggleComplete(id){
+      const t = tasks.find(x => x.id === id);
+      if(!t) return;
+      t.completed = !t.completed;
+      saveTasks();
+      render();
+    }
+
+    function editTask(id){
+      const t = tasks.find(x => x.id === id);
+      if(!t) return;
+      const newText = prompt('Edit task text:', t.text);
+      if(newText === null) return;
+      t.text = newText.trim() || t.text;
+      const newDue = prompt('Edit due date/time (leave blank to keep). Enter in ISO e.g. 2025-08-30T10:30', t.due || '');
+      if(newDue !== null) {
+        t.due = newDue.trim() || t.due;
+      }
+      const newCat = prompt('Category (work, personal, shopping, study):', t.category);
+      if(newCat !== null) {
+        if(['work','personal','shopping','study'].includes(newCat.trim().toLowerCase())){
+          t.category = newCat.trim().toLowerCase();
+        }
+      }
+      saveTasks();
+      render();
+    }
+
+    function deleteTask(id){
+      if(!confirm('Delete this task?')) return;
+      tasks = tasks.filter(x => x.id !== id);
+      saveTasks();
+      render();
+    }
+
+    // Export / Import
+    exportBtn.onclick = () => {
+      const blob = new Blob([JSON.stringify(tasks, null, 2)], {type: 'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'todo-tasks.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    };
+    importFile.onchange = (e) => {
+      const f = e.target.files[0];
+      if(!f) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const imported = JSON.parse(ev.target.result);
+          if(Array.isArray(imported)) {
+            tasks = imported;
+            saveTasks();
+            render();
+            alert('Imported tasks successfully');
+          } else alert('Invalid format');
+        } catch(err){
+          alert('Error parsing file');
+        }
+      };
+      reader.readAsText(f);
+    };
+
+    clearCompleted.onclick = () => {
+      if(!confirm('Remove all completed tasks?')) return;
+      tasks = tasks.filter(t => !t.completed);
+      saveTasks();
+      render();
+    };
+
+    // Event bindings
+    addBtn.onclick = addTask;
+    taskInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') addTask(); });
+    [searchInput, statusFilter, categoryFilter, sortSelect].forEach(el=>el.addEventListener('input', render));
+
+    // initial render
+    render();
+  </script>
+</body>
+</html>
